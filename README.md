@@ -26,7 +26,7 @@ Keep in mind, that opening all ports is not recommended for production environme
 Connect to Your EC2 Instance and Install Jenkins:
 ```
 sudo vi install_jenkins.sh
-
+```
 ```
 #!/bin/bash
 sudo apt update -y
@@ -41,17 +41,17 @@ sudo apt-get update -y
 sudo apt-get install jenkins -y
 sudo systemctl start jenkins
 sudo systemctl status jenkins
-
+```
 Save and exit the text editor.
 
 Make the script executable:
 ```
 sudo chmod +x install_jenkins.sh
-
+```
 Run the script:
 ```
 ./install_jenkins.sh
-
+```
 The script will install Jenkins and start the Jenkins service.
 
 You will need to go to your AWS EC2 Security Group and open Inbound Port 8080 since Jenkins works on Port 8080.
@@ -60,7 +60,7 @@ Now, grab your Public IP Address
 ```
 EC2 Public IP Address:8080
 sudo cat /var/lib/jenkins/secrets/initialAdminPassword
-
+```
 # # Step 2 Install Docker on the Jenkins machine
 ```
 sudo apt-get update
@@ -68,7 +68,7 @@ sudo apt-get install docker.io -y
 sudo usermod -aG docker $USER   #my case is ubuntu
 newgrp docker
 sudo chmod 777 /var/run/docker.sock
-
+```
 After the docker installation, we will create a Sonarqube container (Remember to add 9000 ports in the security group).
 
 Run this command on your EC2 instance to create a SonarQube container:
@@ -76,8 +76,8 @@ Run this command on your EC2 instance to create a SonarQube container:
 
 ```
 docker run -d --name sonar -p 9000:9000 sonarqube:lts-community
-
+```
 To access SonarQube
 ```
 ec2-public-ip:9000
-
+```
