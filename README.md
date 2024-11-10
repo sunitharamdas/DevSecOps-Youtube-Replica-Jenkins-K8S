@@ -1,7 +1,7 @@
 # DevSecOps-Youtube-App-Jenkins-K8S
 Youtube Clone app with DevSecOps, Kubernetes, Docker, SonarQube, Trivy, OWASP Dependency Check, Prometheus, Grafana, Jenkins (and a shared library), Splunk, Rapid API, Slack notifications
 
-# #  Step 1: Launch an Ubuntu 22.04 instance for Jenkins
+##  Step 1: Launch an Ubuntu 22.04 instance for Jenkins
 Log into AWS Console: Sign in to your AWS account.
 
 Launch an Instance:
@@ -61,7 +61,7 @@ Now, grab your Public IP Address
 EC2 Public IP Address:8080
 sudo cat /var/lib/jenkins/secrets/initialAdminPassword
 ```
-# # Step 2 Install Docker on the Jenkins machine
+## Step 2 Install Docker on the Jenkins machine
 ```
 sudo apt-get update
 sudo apt-get install docker.io -y
