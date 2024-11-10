@@ -19,7 +19,12 @@ Configure Security Group:
 Create a new security group. Add rules for HTTP, and HTTPS, and open all ports for learning purposes. Add Storage: Allocate at least 20 GB of storage.
 
 Launch Instance: Review and launch the instance.
-
+Create a virtual environment
+```
+python3 -m venv .venv
+source .venv/bin/activate
+```
+and setup aws configure with the IAM user aws_access_key and aws_secret_key.
 Access Your Instance: Use SSH to connect to your instance with the private key.
 
 Keep in mind, that opening all ports is not recommended for production environments; it’s just for educational purposes.
@@ -29,19 +34,54 @@ sudo vi install_jenkins.sh
 ```
 ```
 #!/bin/bash
+
+set -e
+
+# Update system packages
+echo "Updating system packages..."
 sudo apt update -y
-wget -O - https://packages.adoptium.net/artifactory/api/gpg/key/public | tee /etc/apt/keyrings/adoptium.asc
-echo "deb [signed-by=/etc/apt/keyrings/adoptium.asc] https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" | tee /etc/apt/sources.list.d/adoptium.list
+sudo apt upgrade -y
+
+# Check if a newer kernel is installed
+current_kernel=$(uname -r)
+latest_kernel=$(apt-cache search linux-image-$(uname -r | cut -d'-' -f1) | grep "aws" | sort -V | tail -1 | awk '{print $1}' | cut -d'-' -f3-)
+
+echo "Current Kernel: $current_kernel"
+echo "Latest Kernel: $latest_kernel"
+
+# If a newer kernel is installed, reboot the system
+if [ "$current_kernel" != "$latest_kernel" ]; then
+    echo "A new kernel version is available. Rebooting the system..."
+    sudo reboot
+    exit
+else
+    echo "The system is already running the latest kernel."
+fi
+
+# Install Java SDK 11
+echo "Installing OpenJDK 11..."
+sudo apt install -y openjdk-11-jdk
+
+# Download and Install Jenkins
+echo "Installing Jenkins..."
+wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo apt-key add -
+sudo sh -c 'echo deb http://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list'
 sudo apt update -y
-sudo apt install temurin-17-jdk -y
-/usr/bin/java --version
-curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | sudo tee /usr/share/keyrings/jenkins-keyring.asc > /dev/null
-echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/ | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
-sudo apt-get update -y
-sudo apt-get install jenkins -y
+sudo apt install -y jenkins
+
+# Start Jenkins service
+echo "Starting Jenkins service..."
 sudo systemctl start jenkins
+
+# Enable Jenkins to start on boot
+sudo systemctl enable jenkins
+
+# Check Jenkins status
 sudo systemctl status jenkins
+
+echo "Jenkins installation completed!"
 ```
+
 Save and exit the text editor.
 
 Make the script executable:
@@ -81,3 +121,21 @@ To access SonarQube
 ```
 ec2-public-ip:9000
 ```
+## Step 3: Install Trivy on Jenkins machine
+Create a shell script
+```
+sudo vi trivy.sh
+sudo apt-get install wget apt-transport-https gnupg lsb-release -y
+wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+sudo apt-get update
+sudo apt-get install trivy -y
+```
+Provide executable permissions and run the shell script
+
+```
+sudo chmod +x trivy.sh
+./trivy.sh
+```
+This will install Trivy on our Jenkins machine.
+
